@@ -182,5 +182,17 @@ const seed = db.transaction(() => {
   });
 });
 
-seed();
-console.log('Seeded database with weekly routine.');
+function seedIfEmpty() {
+  const { count } = db.prepare('SELECT COUNT(*) AS count FROM days').get();
+  if (count === 0) {
+    seed();
+    console.log('Database empty — seeded with default weekly routine.');
+  }
+}
+
+if (require.main === module) {
+  seed();
+  console.log('Seeded database with weekly routine (existing logs cleared).');
+}
+
+module.exports = { seed, seedIfEmpty };

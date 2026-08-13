@@ -1,6 +1,10 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
+const { seedIfEmpty } = require('./seed');
+
+seedIfEmpty();
 
 const app = express();
 app.use(cors());
@@ -116,6 +120,16 @@ app.delete('/api/bodyweight/:id', (req, res) => {
   db.prepare('DELETE FROM body_weight_logs WHERE id = ?').run(req.params.id);
   res.status(204).end();
 });
+
+// ---- Serve the built frontend (client/dist), if present ----
+// In local dev, Vite serves the frontend separately and this is skipped.
+const clientDist = path.join(__dirname, '..', 'client', 'dist');
+if (require('fs').existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+  app.use((req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
