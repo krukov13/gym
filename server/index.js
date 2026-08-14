@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./db');
 const { seedIfEmpty } = require('./seed');
+const { MEASUREMENT_FIELDS } = require('./measurementFields');
 
 seedIfEmpty();
 
@@ -118,6 +119,53 @@ app.post('/api/bodyweight', (req, res) => {
 
 app.delete('/api/bodyweight/:id', (req, res) => {
   db.prepare('DELETE FROM body_weight_logs WHERE id = ?').run(req.params.id);
+  res.status(204).end();
+});
+
+// ---- Body measurements ----
+
+app.get('/api/measurement-fields', (req, res) => {
+  res.json(MEASUREMENT_FIELDS);
+});
+
+app.get('/api/measurements', (req, res) => {
+  res.json(db.prepare('SELECT * FROM measurement_logs ORDER BY date').all());
+});
+
+app.post('/api/measurements', (req, res) => {
+  const { date, notes } = req.body;
+  if (!date) {
+    return res.status(400).json({ error: 'date is required' });
+  }
+  const existing = db.prepare('SELECT * FROM measurement_logs WHERE date = ?').get(date);
+  const values = { date, notes: notes !== undefined ? notes || null : existing?.notes ?? null };
+  for (const { key } of MEASUREMENT_FIELDS) {
+    const incoming = req.body[key];
+    if (incoming === undefined) {
+      values[key] = existing ? existing[key] : null;
+    } else {
+      values[key] = incoming === '' || incoming === null ? null : Number(incoming);
+    }
+  }
+
+  let row;
+  if (existing) {
+    const setClause = [...MEASUREMENT_FIELDS.map((f) => `${f.key} = @${f.key}`), 'notes = @notes'].join(', ');
+    db.prepare(`UPDATE measurement_logs SET ${setClause} WHERE id = @id`).run({ ...values, id: existing.id });
+    row = db.prepare('SELECT * FROM measurement_logs WHERE id = ?').get(existing.id);
+  } else {
+    const cols = ['date', ...MEASUREMENT_FIELDS.map((f) => f.key), 'notes'];
+    const placeholders = cols.map((c) => `@${c}`).join(', ');
+    const info = db
+      .prepare(`INSERT INTO measurement_logs (${cols.join(', ')}) VALUES (${placeholders})`)
+      .run(values);
+    row = db.prepare('SELECT * FROM measurement_logs WHERE id = ?').get(info.lastInsertRowid);
+  }
+  res.status(201).json(row);
+});
+
+app.delete('/api/measurements/:id', (req, res) => {
+  db.prepare('DELETE FROM measurement_logs WHERE id = ?').run(req.params.id);
   res.status(204).end();
 });
 

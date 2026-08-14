@@ -25,4 +25,8 @@ export const api = {
   getBodyWeight: () => request('/bodyweight'),
   addBodyWeight: (entry) => request('/bodyweight', { method: 'POST', body: JSON.stringify(entry) }),
   deleteBodyWeight: (id) => request(`/bodyweight/${id}`, { method: 'DELETE' }),
+  getMeasurementFields: () => request('/measurement-fields'),
+  getMeasurements: () => request('/measurements'),
+  addMeasurement: (entry) => request('/measurements', { method: 'POST', body: JSON.stringify(entry) }),
+  deleteMeasurement: (id) => request(`/measurements/${id}`, { method: 'DELETE' }),
 };

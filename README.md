@@ -39,6 +39,10 @@ existing data.
   weight over time, plus latest/best/change-since-first-log stats.
 - **Body Weight** — log your body weight by date, see the trend chart and a
   full history table.
+- **Measurements** — log body circumference (cm) by date: neck, shoulders,
+  chest, waist, hips, biceps/forearm/wrist/thigh/calf (left & right). All
+  fields are optional per entry. Pick any measurement to chart, plus a full
+  history table.
 
 ## Deploying to Railway
 
@@ -79,6 +83,6 @@ to apply changes.
 ## Project structure
 
 ```
-server/   Express API + SQLite schema/seed (server/db.js, server/seed.js, server/index.js)
+server/   Express API + SQLite schema/seed (server/db.js, server/seed.js, server/index.js, server/measurementFields.js)
 client/   React app (client/src/pages, client/src/components)
 ```
