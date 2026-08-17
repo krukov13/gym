@@ -169,6 +169,29 @@ app.delete('/api/measurements/:id', (req, res) => {
   res.status(204).end();
 });
 
+// ---- Custom / "Other" trackers ----
+
+app.get('/api/custom', (req, res) => {
+  res.json(db.prepare('SELECT * FROM custom_logs ORDER BY name, date').all());
+});
+
+app.post('/api/custom', (req, res) => {
+  const { name, date, notes } = req.body;
+  const trimmedName = typeof name === 'string' ? name.trim() : '';
+  if (!trimmedName || !date) {
+    return res.status(400).json({ error: 'name and date are required' });
+  }
+  const info = db
+    .prepare('INSERT INTO custom_logs (name, date, notes) VALUES (?, ?, ?)')
+    .run(trimmedName, date, notes || null);
+  res.status(201).json(db.prepare('SELECT * FROM custom_logs WHERE id = ?').get(info.lastInsertRowid));
+});
+
+app.delete('/api/custom/:id', (req, res) => {
+  db.prepare('DELETE FROM custom_logs WHERE id = ?').run(req.params.id);
+  res.status(204).end();
+});
+
 // ---- Serve the built frontend (client/dist), if present ----
 // In local dev, Vite serves the frontend separately and this is skipped.
 const clientDist = path.join(__dirname, '..', 'client', 'dist');

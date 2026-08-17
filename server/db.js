@@ -71,9 +71,18 @@ CREATE TABLE IF NOT EXISTS measurement_logs (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS custom_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,                 -- freeform, e.g. "Haircut", "Shave"
+  date TEXT NOT NULL,
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_set_logs_exercise_date ON set_logs(exercise_id, date);
 CREATE INDEX IF NOT EXISTS idx_body_weight_date ON body_weight_logs(date);
 CREATE INDEX IF NOT EXISTS idx_measurement_logs_date ON measurement_logs(date);
+CREATE INDEX IF NOT EXISTS idx_custom_logs_name_date ON custom_logs(name, date);
 `);
 
 module.exports = db;

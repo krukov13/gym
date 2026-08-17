@@ -29,4 +29,7 @@ export const api = {
   getMeasurements: () => request('/measurements'),
   addMeasurement: (entry) => request('/measurements', { method: 'POST', body: JSON.stringify(entry) }),
   deleteMeasurement: (id) => request(`/measurements/${id}`, { method: 'DELETE' }),
+  getCustomLogs: () => request('/custom'),
+  addCustomLog: (entry) => request('/custom', { method: 'POST', body: JSON.stringify(entry) }),
+  deleteCustomLog: (id) => request(`/custom/${id}`, { method: 'DELETE' }),
 };

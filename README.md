@@ -43,6 +43,10 @@ existing data.
   chest, waist, hips, biceps/forearm/wrist/thigh/calf (left & right). All
   fields are optional per entry. Pick any measurement to chart, plus a full
   history table.
+- **Other** — track any recurring thing by name and date (haircut, shave,
+  nails, ...) — type a new name or pick an existing one. Shows the average
+  number of days between entries per name and a predicted next-due date,
+  sorted with the most overdue item first.
 
 ## Deploying to Railway
 
