@@ -2,11 +2,12 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
-const { seedIfEmpty, syncExercises } = require('./seed');
+const { seedIfEmpty, syncExercises, migrateWeightToAssist } = require('./seed');
 const { MEASUREMENT_FIELDS } = require('./measurementFields');
 
 seedIfEmpty();
 syncExercises();
+migrateWeightToAssist('Tricep Dips (Assisted or Bodyweight)');
 
 const app = express();
 app.use(cors());

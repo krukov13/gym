@@ -42,6 +42,8 @@ const days = [
         name: 'Tricep Dips (Assisted or Bodyweight)',
         target_sets: 3,
         target_reps: '8-10',
+        cue: 'Use the Assist field for the machine/band assistance used, in kg — lower assist is the improvement. Log 0 once you can do them fully unassisted.',
+        track_assist: 1,
       },
       {
         name: 'Cardio',
@@ -236,9 +238,23 @@ function syncExercises() {
   run();
 }
 
+// One-off, idempotent fix for exercises that switched to assist-tracking
+// after already having logs: those old logs have their assist amount sitting
+// in `weight` (the only field available before track_assist was turned on),
+// which makes "less assist = improvement" look backwards on the chart. Moves
+// weight -> assist for exactly the rows that need it; safe to run every boot
+// since the WHERE clause only ever matches unmigrated rows.
+function migrateWeightToAssist(exerciseName) {
+  const exercise = db.prepare('SELECT id FROM exercises WHERE name = ?').get(exerciseName);
+  if (!exercise) return;
+  db.prepare(
+    'UPDATE set_logs SET assist = weight, weight = NULL WHERE exercise_id = ? AND weight IS NOT NULL AND assist IS NULL'
+  ).run(exercise.id);
+}
+
 if (require.main === module) {
   seed();
   console.log('Seeded database with weekly routine (existing logs cleared).');
 }
 
-module.exports = { seed, seedIfEmpty, syncExercises };
+module.exports = { seed, seedIfEmpty, syncExercises, migrateWeightToAssist };
