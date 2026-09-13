@@ -75,10 +75,10 @@ app.put('/api/logs/:id', (req, res) => {
   if (!existing) return res.status(404).json({ error: 'Log not found' });
   const { weight, reps, assist, notes } = req.body;
   db.prepare('UPDATE set_logs SET weight = ?, reps = ?, assist = ?, notes = ? WHERE id = ?').run(
-    weight ?? existing.weight,
-    reps ?? existing.reps,
-    assist ?? existing.assist,
-    notes ?? existing.notes,
+    weight === undefined ? existing.weight : weight,
+    reps === undefined ? existing.reps : reps,
+    assist === undefined ? existing.assist : assist,
+    notes === undefined ? existing.notes : notes,
     req.params.id
   );
   res.json(db.prepare('SELECT * FROM set_logs WHERE id = ?').get(req.params.id));

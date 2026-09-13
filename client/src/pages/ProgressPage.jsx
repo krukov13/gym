@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { api } from '../api.js';
 import TrendChart from '../components/TrendChart.jsx';
+import LogHistoryTable from '../components/LogHistoryTable.jsx';
 
 function buildSeries(logs) {
   const byDate = new Map();
@@ -40,6 +41,11 @@ export default function ProgressPage() {
       .getExerciseLogs(selectedId)
       .then(setLogs)
       .finally(() => setLoading(false));
+  }, [selectedId]);
+
+  const refreshLogs = useCallback(() => {
+    if (!selectedId) return Promise.resolve();
+    return api.getExerciseLogs(selectedId).then(setLogs);
   }, [selectedId]);
 
   const exercise = exercises.find((e) => String(e.id) === selectedId);
@@ -101,6 +107,14 @@ export default function ProgressPage() {
           </div>
         )}
         {!loading && <TrendChart data={series} unit={usingAssist ? 'kg assist (top set)' : 'kg (top set)'} />}
+      </div>
+
+      <div className="card">
+        <div className="exercise-target" style={{ marginBottom: 10 }}>
+          All logged sets — edit or delete a row to fix a mistake (e.g. a
+          logging-convention change like per-hand vs. total dumbbell weight).
+        </div>
+        <LogHistoryTable exercise={exercise} logs={logs} onChange={refreshLogs} />
       </div>
     </div>
   );

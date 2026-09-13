@@ -36,7 +36,11 @@ existing data.
   exercise (extra sets can be added), edit a past date via the date picker.
   Assisted pull-ups have a dedicated "assist" field.
 - **Progress** — pick any exercise and see a line chart of your top set's
-  weight over time, plus latest/best/change-since-first-log stats.
+  weight over time, plus latest/best/change-since-first-log stats. Below the
+  chart, every logged set for that exercise is listed and directly editable
+  (weight/reps/assist) or deletable — use this to fix mistakes, like a
+  logging-convention change (e.g. switching a dumbbell exercise from
+  "per-hand" to "total" weight, which otherwise looks like an overnight PR).
 - **Body Weight** — log your body weight by date, see the trend chart and a
   full history table.
 - **Measurements** — log body circumference (cm) by date: neck, shoulders,
