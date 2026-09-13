@@ -27,6 +27,12 @@ const days = [
         cue: '30–45° incline. Upper chest focus. Full range — stretch at bottom, squeeze at top.',
       },
       {
+        name: 'Cable Pec Fly',
+        target_sets: 3,
+        target_reps: '12-15',
+        cue: 'Cable crossover (or pec deck). Slight bend in elbows throughout, squeeze at the midline, controlled stretch on the return.',
+      },
+      {
         name: 'Dumbbell Lateral Raise',
         target_sets: 3,
         target_reps: '10-12',
@@ -190,9 +196,49 @@ function seedIfEmpty() {
   }
 }
 
+const findDay = db.prepare('SELECT id FROM days WHERE weekday = ?');
+const findExercise = db.prepare('SELECT id FROM exercises WHERE day_id = ? AND name = ?');
+const updateExercise = db.prepare(`
+  UPDATE exercises SET target_sets = @target_sets, target_reps = @target_reps,
+    cue = @cue, track_assist = @track_assist, order_index = @order_index
+  WHERE id = @id
+`);
+
+// Reconciles exercise definitions (name, target sets/reps, cue, order) against
+// the routine above without ever deleting a row — safe to run on every boot,
+// even against a database with existing logged sets. New exercises added to
+// the `days` list above get inserted; existing ones get their details/order
+// refreshed to match. Nothing referencing an exercise (set_logs) is touched.
+function syncExercises() {
+  const run = db.transaction(() => {
+    for (const day of days) {
+      const dayRecord = findDay.get(day.weekday);
+      if (!dayRecord) continue; // fresh install — seedIfEmpty handles this case
+      day.exercises.forEach((ex, index) => {
+        const params = {
+          day_id: dayRecord.id,
+          name: ex.name,
+          target_sets: ex.target_sets ?? null,
+          target_reps: ex.target_reps ?? null,
+          cue: ex.cue ?? null,
+          track_assist: ex.track_assist ? 1 : 0,
+          order_index: index,
+        };
+        const existing = findExercise.get(dayRecord.id, ex.name);
+        if (existing) {
+          updateExercise.run({ ...params, id: existing.id });
+        } else {
+          insertExercise.run(params);
+        }
+      });
+    }
+  });
+  run();
+}
+
 if (require.main === module) {
   seed();
   console.log('Seeded database with weekly routine (existing logs cleared).');
 }
 
-module.exports = { seed, seedIfEmpty };
+module.exports = { seed, seedIfEmpty, syncExercises };

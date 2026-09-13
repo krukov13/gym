@@ -2,10 +2,11 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
-const { seedIfEmpty } = require('./seed');
+const { seedIfEmpty, syncExercises } = require('./seed');
 const { MEASUREMENT_FIELDS } = require('./measurementFields');
 
 seedIfEmpty();
+syncExercises();
 
 const app = express();
 app.use(cors());
