@@ -2,12 +2,14 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
-const { seedIfEmpty, syncExercises, migrateWeightToAssist } = require('./seed');
+const { seedIfEmpty, syncExercises, migrateWeightToAssist, normalizeAssistSign } = require('./seed');
 const { MEASUREMENT_FIELDS } = require('./measurementFields');
 
 seedIfEmpty();
 syncExercises();
 migrateWeightToAssist('Tricep Dips (Assisted or Bodyweight)');
+normalizeAssistSign('Tricep Dips (Assisted or Bodyweight)');
+normalizeAssistSign('Weighted Pull-Ups');
 
 const app = express();
 app.use(cors());
@@ -57,6 +59,16 @@ app.get('/api/exercises/:id/logs/:date', (req, res) => {
   res.json(logs);
 });
 
+// Assist is always "how much help was used" — stored as <= 0 (0 = none, -12
+// = 12kg of help) so that higher is always the improvement, same as weight.
+// Normalizing here means the user can just type "12" out of habit and it's
+// still stored correctly, instead of relying on them remembering the minus
+// sign every time.
+function normalizeAssist(assist) {
+  if (assist == null) return assist;
+  return assist > 0 ? -assist : assist;
+}
+
 app.post('/api/logs', (req, res) => {
   const { exercise_id, date, set_number, weight, reps, assist, notes } = req.body;
   if (!exercise_id || !date || !set_number) {
@@ -67,7 +79,7 @@ app.post('/api/logs', (req, res) => {
       `INSERT INTO set_logs (exercise_id, date, set_number, weight, reps, assist, notes)
        VALUES (?, ?, ?, ?, ?, ?, ?)`
     )
-    .run(exercise_id, date, set_number, weight ?? null, reps ?? null, assist ?? null, notes ?? null);
+    .run(exercise_id, date, set_number, weight ?? null, reps ?? null, normalizeAssist(assist), notes ?? null);
   res.status(201).json(db.prepare('SELECT * FROM set_logs WHERE id = ?').get(info.lastInsertRowid));
 });
 
@@ -78,7 +90,7 @@ app.put('/api/logs/:id', (req, res) => {
   db.prepare('UPDATE set_logs SET weight = ?, reps = ?, assist = ?, notes = ? WHERE id = ?').run(
     weight === undefined ? existing.weight : weight,
     reps === undefined ? existing.reps : reps,
-    assist === undefined ? existing.assist : assist,
+    assist === undefined ? existing.assist : normalizeAssist(assist),
     notes === undefined ? existing.notes : notes,
     req.params.id
   );

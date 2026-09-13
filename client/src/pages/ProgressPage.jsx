@@ -3,13 +3,16 @@ import { api } from '../api.js';
 import TrendChart from '../components/TrendChart.jsx';
 import LogHistoryTable from '../components/LogHistoryTable.jsx';
 
+// Assist is stored so that higher (closer to 0, e.g. -12 -> -6 -> 0) is
+// always the improvement, same convention as weight — no sign-flipping
+// needed here.
 function buildSeries(logs) {
   const byDate = new Map();
   for (const log of logs) {
     const hasWeight = log.weight !== null && log.weight !== undefined;
     const hasAssist = log.assist !== null && log.assist !== undefined;
     if (!hasWeight && !hasAssist) continue;
-    const value = hasWeight ? log.weight : -log.assist;
+    const value = hasWeight ? log.weight : log.assist;
     const cur = byDate.get(log.date);
     if (cur === undefined || value > cur) byDate.set(log.date, value);
   }
@@ -94,8 +97,8 @@ export default function ProgressPage() {
               <div className="label">Latest</div>
             </div>
             <div className="stat-tile">
-              <div className="value">{usingAssist ? Math.min(...series.map((s) => -s.value)) : stats.best}</div>
-              <div className="label">{usingAssist ? 'Least assist (kg)' : 'Best (kg)'}</div>
+              <div className="value">{stats.best}</div>
+              <div className="label">{usingAssist ? 'Closest to unassisted (kg)' : 'Best (kg)'}</div>
             </div>
             <div className="stat-tile">
               <div className={`value ${stats.delta >= 0 ? 'delta-up' : 'delta-down'}`}>

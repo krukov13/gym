@@ -42,7 +42,7 @@ const days = [
         name: 'Tricep Dips (Assisted or Bodyweight)',
         target_sets: 3,
         target_reps: '8-10',
-        cue: 'Use the Assist field for the machine/band assistance used, in kg — lower assist is the improvement. Log 0 once you can do them fully unassisted.',
+        cue: 'Log the machine/band assistance used, in kg, in the Assist field — 0 once fully unassisted. Less assist is the improvement, same as any other lift getting easier.',
         track_assist: 1,
       },
       {
@@ -69,7 +69,7 @@ const days = [
         name: 'Weighted Pull-Ups',
         target_sets: 3,
         target_reps: '6',
-        cue: 'Track assist amount if used.',
+        cue: 'If using machine/band assist, log it in kg in the Assist field — 0 once fully unassisted. Once unassisted, switch to the Weight field to log added weight (e.g. a dip belt).',
         track_assist: 1,
       },
       { name: 'Lat Pulldown', target_sets: 3, target_reps: '6-8' },
@@ -252,9 +252,22 @@ function migrateWeightToAssist(exerciseName) {
   ).run(exercise.id);
 }
 
+// One-off, idempotent sign fix: assist is stored so that higher (closer to
+// 0, or positive) is always the improvement — same convention as weight —
+// which means an assist amount is a *negative* number of kg (e.g. -12 for
+// 12kg of machine/band help, 0 once fully unassisted). Older data was
+// entered as a positive "amount of assist used", which read backwards once
+// the chart stopped special-casing assist. Flips any positive value negative
+// for exactly the rows that still need it; safe to run every boot.
+function normalizeAssistSign(exerciseName) {
+  const exercise = db.prepare('SELECT id FROM exercises WHERE name = ?').get(exerciseName);
+  if (!exercise) return;
+  db.prepare('UPDATE set_logs SET assist = -assist WHERE exercise_id = ? AND assist > 0').run(exercise.id);
+}
+
 if (require.main === module) {
   seed();
   console.log('Seeded database with weekly routine (existing logs cleared).');
 }
 
-module.exports = { seed, seedIfEmpty, syncExercises, migrateWeightToAssist };
+module.exports = { seed, seedIfEmpty, syncExercises, migrateWeightToAssist, normalizeAssistSign };

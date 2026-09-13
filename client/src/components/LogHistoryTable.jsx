@@ -62,7 +62,7 @@ export default function LogHistoryTable({ exercise, logs, onChange }) {
             <th>Set</th>
             <th>Weight (kg)</th>
             <th>Reps</th>
-            {Boolean(exercise?.track_assist) && <th>Assist (kg)</th>}
+            {Boolean(exercise?.track_assist) && <th>Assist used (kg)</th>}
             <th></th>
           </tr>
         </thead>
@@ -93,7 +93,6 @@ export default function LogHistoryTable({ exercise, logs, onChange }) {
                 <td>
                   <input
                     type="number"
-                    inputMode="decimal"
                     value={getValue(log, 'assist')}
                     onChange={(e) => setValue(log.id, 'assist', e.target.value)}
                     style={{ width: 72 }}

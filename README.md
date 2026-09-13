@@ -35,8 +35,9 @@ existing data.
 - **Workout** — pick a day of the week, log weight/reps per set for each
   exercise (extra sets can be added), edit a past date via the date picker.
   Assisted pull-ups and tricep dips have a dedicated "assist" field (kg of
-  machine/band help used) — charted so that *less* assist reads as progress,
-  not regression.
+  machine/band help used) — stored as <= 0 (0 = unassisted, -12 = 12kg of
+  help) so higher is always the improvement, same as weight. Type a positive
+  number out of habit and the server negates it for you automatically.
 - **Progress** — pick any exercise and see a line chart of your top set's
   weight over time, plus latest/best/change-since-first-log stats. Below the
   chart, every logged set for that exercise is listed and directly editable

@@ -121,10 +121,9 @@ export default function ExerciseCard({ exercise, date }) {
           </div>
           {exercise.track_assist ? (
             <div>
-              <label>Assist (kg)</label>
+              <label>Assist used (kg)</label>
               <input
                 type="number"
-                inputMode="decimal"
                 value={row.assist}
                 onChange={(e) => updateField(i, 'assist', e.target.value)}
               />
