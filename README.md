@@ -38,11 +38,14 @@ existing data.
   machine/band help used) — stored as <= 0 (0 = unassisted, -12 = 12kg of
   help) so higher is always the improvement, same as weight. Type a positive
   number out of habit and the server negates it for you automatically.
-- **Progress** — pick any exercise and see a line chart of your top set's
-  weight over time, plus latest/best/change-since-first-log stats. Below the
-  chart, every logged set for that exercise is listed and directly editable
-  (weight/reps/assist) or deletable — use this to fix mistakes, like a
-  logging-convention change (e.g. switching a dumbbell exercise from
+- **Progress** — pick any exercise and see a line chart plus
+  latest/best/change-since-first-log stats. Each day's chart point is your
+  best set (PR) for regular lifts, or the average across that day's sets for
+  assist-tracked exercises (assist naturally varies a lot within one session
+  as you fatigue, so a single best set would hide how the rest went). Below
+  the chart, every logged set for that exercise is listed and directly
+  editable (weight/reps/assist) or deletable — use this to fix mistakes, like
+  a logging-convention change (e.g. switching a dumbbell exercise from
   "per-hand" to "total" weight, which otherwise looks like an overnight PR).
 - **Body Weight** — log your body weight by date, see the trend chart and a
   full history table.

@@ -6,6 +6,12 @@ import LogHistoryTable from '../components/LogHistoryTable.jsx';
 // Assist is stored so that higher (closer to 0, e.g. -12 -> -6 -> 0) is
 // always the improvement, same convention as weight — no sign-flipping
 // needed here.
+//
+// Aggregation differs by kind: a weight day is represented by its best set
+// (PR), same as always. An assist day is represented by the *average*
+// across its sets — assist naturally varies a lot within one session
+// (harder on later, fatigued sets), so the best single set alone hides how
+// the rest of the session actually went.
 function buildSeries(logs) {
   const byDate = new Map();
   for (const log of logs) {
@@ -13,12 +19,16 @@ function buildSeries(logs) {
     const hasAssist = log.assist !== null && log.assist !== undefined;
     if (!hasWeight && !hasAssist) continue;
     const value = hasWeight ? log.weight : log.assist;
-    const cur = byDate.get(log.date);
-    if (cur === undefined || value > cur) byDate.set(log.date, value);
+    const bucket = byDate.get(log.date) ?? { values: [], isAssist: !hasWeight };
+    bucket.values.push(value);
+    byDate.set(log.date, bucket);
   }
   return Array.from(byDate.entries())
     .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([date, value]) => ({ date, value }));
+    .map(([date, { values, isAssist }]) => ({
+      date,
+      value: isAssist ? values.reduce((a, b) => a + b, 0) / values.length : Math.max(...values),
+    }));
 }
 
 export default function ProgressPage() {
@@ -109,7 +119,9 @@ export default function ProgressPage() {
             </div>
           </div>
         )}
-        {!loading && <TrendChart data={series} unit={usingAssist ? 'kg assist (top set)' : 'kg (top set)'} />}
+        {!loading && (
+          <TrendChart data={series} unit={usingAssist ? 'kg assist (session avg)' : 'kg (top set)'} />
+        )}
       </div>
 
       <div className="card">
