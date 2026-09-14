@@ -210,8 +210,23 @@ app.delete('/api/custom/:id', (req, res) => {
 // In local dev, Vite serves the frontend separately and this is skipped.
 const clientDist = path.join(__dirname, '..', 'client', 'dist');
 if (require('fs').existsSync(clientDist)) {
-  app.use(express.static(clientDist));
+  // Vite's hashed asset filenames (assets/*.js, *.css) are safe to cache
+  // forever — a new build gets a new filename. index.html is not hashed, so
+  // it must always be revalidated, or browsers can keep serving a stale app
+  // shell (pointing at old, no-longer-served asset filenames) after a
+  // deploy until the user manually hard-refreshes.
+  app.use(
+    express.static(clientDist, {
+      setHeaders: (res, filePath) => {
+        res.setHeader(
+          'Cache-Control',
+          filePath.endsWith('index.html') ? 'no-cache' : 'public, max-age=31536000, immutable'
+        );
+      },
+    })
+  );
   app.use((req, res) => {
+    res.set('Cache-Control', 'no-cache');
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 }
