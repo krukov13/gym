@@ -3,23 +3,39 @@ import { api } from '../api.js';
 import TrendChart from '../components/TrendChart.jsx';
 import LogHistoryTable from '../components/LogHistoryTable.jsx';
 
+// Epley formula: estimates the weight you could lift for 1 rep, given a
+// weight/reps pair. Lets a 10-rep set at less weight and a 6-rep set at more
+// weight be compared on equal footing instead of just eyeballing raw
+// weight — otherwise a heavier top set always looks like "progress" even
+// when it was actually a worse overall effort (fewer total reps for a
+// similar or lower estimated max).
+function estimatedOneRepMax(weight, reps) {
+  if (weight == null || reps == null || reps <= 1) return weight;
+  return Math.round(weight * (1 + reps / 30) * 10) / 10;
+}
+
 // Assist is stored so that higher (closer to 0, e.g. -12 -> -6 -> 0) is
 // always the improvement, same convention as weight — no sign-flipping
 // needed here.
 //
 // Aggregation differs by kind: a weight day is represented by its best set
-// (PR), same as always. An assist day is represented by the *average*
-// across its sets — assist naturally varies a lot within one session
-// (harder on later, fatigued sets), so the best single set alone hides how
-// the rest of the session actually went.
-function buildSeries(logs) {
+// (PR, or best estimated 1RM if that metric is selected). An assist day is
+// represented by the *average* across its sets — assist naturally varies a
+// lot within one session (harder on later, fatigued sets), so the best
+// single set alone hides how the rest of the session actually went.
+function buildSeries(logs, metric) {
   const byDate = new Map();
   for (const log of logs) {
     const hasWeight = log.weight !== null && log.weight !== undefined;
     const hasAssist = log.assist !== null && log.assist !== undefined;
     if (!hasWeight && !hasAssist) continue;
-    const value = hasWeight ? log.weight : log.assist;
-    const bucket = byDate.get(log.date) ?? { values: [], isAssist: !hasWeight };
+    const isAssist = !hasWeight && hasAssist;
+    const value = isAssist
+      ? log.assist
+      : metric === 'e1rm'
+        ? estimatedOneRepMax(log.weight, log.reps)
+        : log.weight;
+    const bucket = byDate.get(log.date) ?? { values: [], isAssist };
     bucket.values.push(value);
     byDate.set(log.date, bucket);
   }
@@ -37,6 +53,7 @@ export default function ProgressPage() {
   const [selectedId, setSelectedId] = useState('');
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [metric, setMetric] = useState('weight');
 
   useEffect(() => {
     Promise.all([api.getExercises(), api.getDays()]).then(([ex, d]) => {
@@ -62,7 +79,7 @@ export default function ProgressPage() {
   }, [selectedId]);
 
   const exercise = exercises.find((e) => String(e.id) === selectedId);
-  const series = useMemo(() => buildSeries(logs), [logs]);
+  const series = useMemo(() => buildSeries(logs, metric), [logs, metric]);
   const usingAssist =
     Boolean(exercise?.track_assist) &&
     logs.some((l) => l.assist != null) &&
@@ -95,7 +112,25 @@ export default function ProgressPage() {
             ))}
           </select>
         </div>
+        {!usingAssist && (
+          <div className="field">
+            <label htmlFor="metric-select">Chart by</label>
+            <select id="metric-select" value={metric} onChange={(e) => setMetric(e.target.value)}>
+              <option value="weight">Top set weight</option>
+              <option value="e1rm">Estimated 1RM</option>
+            </select>
+          </div>
+        )}
       </div>
+
+      {!usingAssist && metric === 'e1rm' && (
+        <p className="exercise-cue" style={{ marginTop: -10, marginBottom: 16 }}>
+          Estimated 1RM (Epley formula) combines weight and reps into one
+          number, so a 10-rep set at less weight and a 6-rep set at more
+          weight can be compared fairly — a heavier top set won't look like
+          progress if it was actually fewer effective reps.
+        </p>
+      )}
 
       <div className="card">
         {stats && (
@@ -108,7 +143,9 @@ export default function ProgressPage() {
             </div>
             <div className="stat-tile">
               <div className="value">{stats.best}</div>
-              <div className="label">{usingAssist ? 'Closest to unassisted (kg)' : 'Best (kg)'}</div>
+              <div className="label">
+                {usingAssist ? 'Closest to unassisted (kg)' : metric === 'e1rm' ? 'Best est. 1RM (kg)' : 'Best (kg)'}
+              </div>
             </div>
             <div className="stat-tile">
               <div className={`value ${stats.delta >= 0 ? 'delta-up' : 'delta-down'}`}>
@@ -120,7 +157,10 @@ export default function ProgressPage() {
           </div>
         )}
         {!loading && (
-          <TrendChart data={series} unit={usingAssist ? 'kg assist (session avg)' : 'kg (top set)'} />
+          <TrendChart
+            data={series}
+            unit={usingAssist ? 'kg assist (session avg)' : metric === 'e1rm' ? 'kg (est. 1RM)' : 'kg (top set)'}
+          />
         )}
       </div>
 

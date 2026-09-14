@@ -42,10 +42,14 @@ existing data.
   latest/best/change-since-first-log stats. Each day's chart point is your
   best set (PR) for regular lifts, or the average across that day's sets for
   assist-tracked exercises (assist naturally varies a lot within one session
-  as you fatigue, so a single best set would hide how the rest went). Below
-  the chart, every logged set for that exercise is listed and directly
-  editable (weight/reps/assist) or deletable — use this to fix mistakes, like
-  a logging-convention change (e.g. switching a dumbbell exercise from
+  as you fatigue, so a single best set would hide how the rest went). For
+  regular lifts, a "Chart by" toggle switches between raw top-set weight and
+  **Estimated 1RM** (Epley formula), which combines weight and reps into one
+  number so a heavier-but-lower-rep set doesn't automatically look like
+  progress over a lighter-but-higher-rep one. Below the chart, every logged
+  set for that exercise is listed and directly editable (weight/reps/assist)
+  or deletable — use this to fix mistakes, like a logging-convention change
+  (e.g. switching a dumbbell exercise from
   "per-hand" to "total" weight, which otherwise looks like an overnight PR).
 - **Body Weight** — log your body weight by date, see the trend chart and a
   full history table.
