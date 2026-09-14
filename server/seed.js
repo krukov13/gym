@@ -74,6 +74,12 @@ const days = [
       },
       { name: 'Lat Pulldown', target_sets: 3, target_reps: '6-8' },
       { name: 'Dumbbell Single-Arm Row', target_sets: 3, target_reps: '6-8' },
+      {
+        name: 'Dumbbell Bicep Curl',
+        target_sets: 3,
+        target_reps: '10-12',
+        cue: 'Neutral or supinated grip, elbows pinned to your sides. Full range — squeeze at top, controlled 3s negative, no swinging.',
+      },
       { name: 'Dumbbell Rear Delt Fly', target_sets: 3, target_reps: '10-12' },
       { name: 'Cardio', target_sets: 1, target_reps: '15 min' },
     ],
