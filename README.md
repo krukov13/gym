@@ -37,7 +37,9 @@ existing data.
   Assisted pull-ups and tricep dips have a dedicated "assist" field (kg of
   machine/band help used) — stored as <= 0 (0 = unassisted, -12 = 12kg of
   help) so higher is always the improvement, same as weight. Type a positive
-  number out of habit and the server negates it for you automatically.
+  number out of habit and the server negates it for you automatically. A
+  stat card up top shows gym attendance: sessions this month, last month,
+  and all-time (any date with at least one logged set counts as a session).
 - **Progress** — pick any exercise and see a line chart plus
   latest/best/change-since-first-log stats. Each day's chart point is your
   best set (PR) for regular lifts, or the average across that day's sets for

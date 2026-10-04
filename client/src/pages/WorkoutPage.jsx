@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { WEEKDAYS } from '../App.jsx';
 import ExerciseCard from '../components/ExerciseCard.jsx';
+import SessionStats from '../components/SessionStats.jsx';
 
 function todayISO() {
   const d = new Date();
@@ -31,6 +32,7 @@ export default function WorkoutPage() {
 
   return (
     <div>
+      <SessionStats />
       <div className="day-picker">
         {WEEKDAYS.map((wd) => (
           <a

@@ -206,6 +206,16 @@ app.delete('/api/custom/:id', (req, res) => {
   res.status(204).end();
 });
 
+// ---- Sessions (gym attendance) ----
+// A "session" is any date with at least one logged set — deliberately only
+// set_logs (actual workout sets), not body weight/measurements/other, since
+// those can be logged from anywhere, not just at the gym.
+
+app.get('/api/sessions', (req, res) => {
+  const rows = db.prepare('SELECT DISTINCT date FROM set_logs ORDER BY date').all();
+  res.json(rows.map((r) => r.date));
+});
+
 // ---- Serve the built frontend (client/dist), if present ----
 // In local dev, Vite serves the frontend separately and this is skipped.
 const clientDist = path.join(__dirname, '..', 'client', 'dist');

@@ -32,4 +32,5 @@ export const api = {
   getCustomLogs: () => request('/custom'),
   addCustomLog: (entry) => request('/custom', { method: 'POST', body: JSON.stringify(entry) }),
   deleteCustomLog: (id) => request(`/custom/${id}`, { method: 'DELETE' }),
+  getSessions: () => request('/sessions'),
 };
