@@ -4,12 +4,15 @@ const cors = require('cors');
 const db = require('./db');
 const { seedIfEmpty, syncExercises, migrateWeightToAssist, normalizeAssistSign } = require('./seed');
 const { MEASUREMENT_FIELDS } = require('./measurementFields');
+const { seedRecipeIfMissing } = require('./recipeSeed');
+const { INITIAL_RECIPES } = require('./initialRecipes');
 
 seedIfEmpty();
 syncExercises();
 migrateWeightToAssist('Tricep Dips (Assisted or Bodyweight)');
 normalizeAssistSign('Tricep Dips (Assisted or Bodyweight)');
 normalizeAssistSign('Weighted Pull-Ups');
+INITIAL_RECIPES.forEach(seedRecipeIfMissing);
 
 const app = express();
 app.use(cors());
