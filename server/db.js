@@ -79,6 +79,15 @@ CREATE TABLE IF NOT EXISTS custom_logs (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS recipes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  ingredients TEXT,                   -- freeform, one per line
+  instructions TEXT,                  -- freeform, one step per line
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_set_logs_exercise_date ON set_logs(exercise_id, date);
 CREATE INDEX IF NOT EXISTS idx_body_weight_date ON body_weight_logs(date);
 CREATE INDEX IF NOT EXISTS idx_measurement_logs_date ON measurement_logs(date);

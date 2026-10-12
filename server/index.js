@@ -216,6 +216,44 @@ app.get('/api/sessions', (req, res) => {
   res.json(rows.map((r) => r.date));
 });
 
+// ---- Recipes ----
+
+app.get('/api/recipes', (req, res) => {
+  res.json(db.prepare('SELECT * FROM recipes ORDER BY title').all());
+});
+
+app.post('/api/recipes', (req, res) => {
+  const { title, ingredients, instructions, notes } = req.body;
+  const trimmedTitle = typeof title === 'string' ? title.trim() : '';
+  if (!trimmedTitle) {
+    return res.status(400).json({ error: 'title is required' });
+  }
+  const info = db
+    .prepare('INSERT INTO recipes (title, ingredients, instructions, notes) VALUES (?, ?, ?, ?)')
+    .run(trimmedTitle, ingredients || null, instructions || null, notes || null);
+  res.status(201).json(db.prepare('SELECT * FROM recipes WHERE id = ?').get(info.lastInsertRowid));
+});
+
+app.put('/api/recipes/:id', (req, res) => {
+  const existing = db.prepare('SELECT * FROM recipes WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Recipe not found' });
+  const { title, ingredients, instructions, notes } = req.body;
+  const trimmedTitle = typeof title === 'string' ? title.trim() : '';
+  db.prepare('UPDATE recipes SET title = ?, ingredients = ?, instructions = ?, notes = ? WHERE id = ?').run(
+    trimmedTitle || existing.title,
+    ingredients === undefined ? existing.ingredients : ingredients,
+    instructions === undefined ? existing.instructions : instructions,
+    notes === undefined ? existing.notes : notes,
+    req.params.id
+  );
+  res.json(db.prepare('SELECT * FROM recipes WHERE id = ?').get(req.params.id));
+});
+
+app.delete('/api/recipes/:id', (req, res) => {
+  db.prepare('DELETE FROM recipes WHERE id = ?').run(req.params.id);
+  res.status(204).end();
+});
+
 // ---- Serve the built frontend (client/dist), if present ----
 // In local dev, Vite serves the frontend separately and this is skipped.
 const clientDist = path.join(__dirname, '..', 'client', 'dist');

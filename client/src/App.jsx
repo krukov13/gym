@@ -4,6 +4,7 @@ import ProgressPage from './pages/ProgressPage.jsx';
 import BodyWeightPage from './pages/BodyWeightPage.jsx';
 import MeasurementsPage from './pages/MeasurementsPage.jsx';
 import OtherPage from './pages/OtherPage.jsx';
+import RecipesPage from './pages/RecipesPage.jsx';
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -35,6 +36,9 @@ export default function App() {
         <NavLink to="/other" className={({ isActive }) => (isActive ? 'active' : '')}>
           Other
         </NavLink>
+        <NavLink to="/recipes" className={({ isActive }) => (isActive ? 'active' : '')}>
+          Recipes
+        </NavLink>
       </nav>
 
       <Routes>
@@ -44,6 +48,7 @@ export default function App() {
         <Route path="/bodyweight" element={<BodyWeightPage />} />
         <Route path="/measurements" element={<MeasurementsPage />} />
         <Route path="/other" element={<OtherPage />} />
+        <Route path="/recipes" element={<RecipesPage />} />
       </Routes>
     </div>
   );

@@ -33,4 +33,8 @@ export const api = {
   addCustomLog: (entry) => request('/custom', { method: 'POST', body: JSON.stringify(entry) }),
   deleteCustomLog: (id) => request(`/custom/${id}`, { method: 'DELETE' }),
   getSessions: () => request('/sessions'),
+  getRecipes: () => request('/recipes'),
+  addRecipe: (recipe) => request('/recipes', { method: 'POST', body: JSON.stringify(recipe) }),
+  updateRecipe: (id, recipe) => request(`/recipes/${id}`, { method: 'PUT', body: JSON.stringify(recipe) }),
+  deleteRecipe: (id) => request(`/recipes/${id}`, { method: 'DELETE' }),
 };

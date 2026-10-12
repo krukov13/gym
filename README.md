@@ -63,6 +63,10 @@ existing data.
   nails, ...) — type a new name or pick an existing one. Shows the average
   number of days between entries per name and a predicted next-due date,
   sorted with the most overdue item first.
+- **Recipes** — save a title, ingredients, instructions, and optional notes.
+  Each recipe is collapsed to just its title in the list; click it to expand
+  in place (accordion-style) and reveal the full recipe, with Edit/Delete
+  inline.
 
 ## Deploying to Railway
 
