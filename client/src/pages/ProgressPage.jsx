@@ -85,7 +85,7 @@ export default function ProgressPage() {
     logs.some((l) => l.assist != null) &&
     !logs.some((l) => l.weight != null);
 
-  const dayLabel = (dayId) => days.find((d) => d.id === dayId)?.weekday;
+  const dayLabel = (dayId) => days.find((d) => d.id === dayId)?.title;
 
   const stats = useMemo(() => {
     if (series.length === 0) return null;

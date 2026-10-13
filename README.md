@@ -1,11 +1,12 @@
 # Gym Tracker
 
 A personal workout & body-weight progress tracker. Log the weight/reps you hit
-on each exercise in your weekly routine and your body weight over time, then
-watch progress charts move.
+on each exercise in your routine and your body weight over time, then watch
+progress charts move.
 
-Pre-seeded with a 6-day push/pull/legs split (Monday–Saturday), Sunday as a
-rest day.
+Pre-seeded with a 3-day Full Body A/B/C EGYM circuit routine (2 rounds per
+machine). Routines aren't tied to calendar days — pick whichever one (A, B,
+or C) you're doing today from the Workout tab, in any order, on any day.
 
 ## Stack
 
@@ -32,8 +33,10 @@ existing data.
 
 ## Features
 
-- **Workout** — pick a day of the week, log weight/reps per set for each
-  exercise (extra sets can be added), edit a past date via the date picker.
+- **Workout** — pick which routine (Full Body A/B/C) you're doing today —
+  not tied to the calendar, pick any of them on any day — and log weight/reps
+  per set for each exercise (extra sets can be added), editing a past date
+  via the date picker.
   Assisted pull-ups and tricep dips have a dedicated "assist" field (kg of
   machine/band help used) — stored as <= 0 (0 = unassisted, -12 = 12kg of
   help) so higher is always the improvement, same as weight. Type a positive
@@ -100,9 +103,19 @@ automatically.
 
 ## Customizing the routine
 
-Edit `server/seed.js` — it's a plain list of days/exercises (name, target
-sets/reps, form cue, whether to track an assist weight). Run `npm run seed`
-to apply changes.
+Edit the `days` list in `server/seed.js` — each entry is a routine (name,
+focus, a stable `weekday` slug used as its key) with its own list of
+exercises (name, target sets/reps, form cue, whether to track an assist
+weight). **Don't run `npm run seed`** to apply changes to a database that
+already has logged data — it's a full destructive reset (wipes every
+logged set) meant only for a truly fresh install. Instead just edit
+`seed.js` and redeploy: the server reconciles the live database against it
+automatically on every boot (`syncDays` + `syncExercises`), inserting new
+routines/exercises and updating existing ones in place, while routines
+removed from the list are archived (hidden from the picker, not deleted —
+their exercises and logged history stay intact and still show up in
+Progress). This is exactly how the switch from the old 6-day split to the
+3-day Full Body routine was done.
 
 ## Project structure
 

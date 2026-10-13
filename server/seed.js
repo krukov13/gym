@@ -1,168 +1,150 @@
 const db = require('./db');
 
+// `weekday` here is a stable slug identifying the routine — it is NOT tied
+// to a calendar day. The user picks which routine (A/B/C) to do on
+// whichever real-world day they choose; the app just needs a stable key per
+// routine to track exercises/logs against.
 const days = [
   {
-    weekday: 'Monday',
-    title: 'PUSH A',
-    focus: 'Chest · Shoulders · Triceps',
-    equipment: 'Free Weights',
-    style: 'Heavy',
+    weekday: 'full-body-a',
+    title: 'Full Body A',
+    focus: 'Chest · Upper Back · Glutes · Quads · Outer Hips · Lower Back',
+    equipment: 'EGYM / Machines',
+    style: 'Circuit · 2 rounds · ~35-40 min',
     exercises: [
       {
-        name: 'Barbell Bench Press',
-        target_sets: 4,
-        target_reps: '6-8',
-        cue: 'Flat bench. Grip slightly wider than shoulder width. Full range — bar touches chest, full lockout. 3s descent, explosive press.',
+        name: 'Hip Thrust / Booty Builder',
+        target_sets: 2,
+        target_reps: '10-12',
+        cue: 'Drive through the heels, lock hips out at top, zero knee/meniscus shear.',
       },
       {
-        name: 'Dumbbell Overhead Press',
-        target_sets: 4,
-        target_reps: '6-8',
-        cue: 'Seated or standing. Dumbbells at ear height, press straight up. Avoid arching lower back — brace core throughout.',
+        name: 'Brustpresse (Chest Press)',
+        target_sets: 2,
+        target_reps: '10-12',
+        cue: 'Neutral/angled grips, wrists straight and locked, slow 2-second negative.',
       },
       {
-        name: 'Incline Dumbbell Press',
-        target_sets: 3,
-        target_reps: '8',
-        cue: '30–45° incline. Upper chest focus. Full range — stretch at bottom, squeeze at top.',
+        name: 'Ruderzug (Seated Row)',
+        target_sets: 2,
+        target_reps: '10-12',
+        cue: 'Chest against pad or upright torso, pull through the elbows, squeeze back 1 second.',
       },
       {
-        name: 'Cable Pec Fly',
-        target_sets: 3,
+        name: 'Beinstrecker (Leg Extension)',
+        target_sets: 2,
         target_reps: '12-15',
-        cue: 'Cable crossover (or pec deck). Slight bend in elbows throughout, squeeze at the midline, controlled stretch on the return.',
+        cue: 'Smooth extension, hard 1-second squeeze at the top, control the descent.',
       },
       {
-        name: 'Dumbbell Lateral Raise',
-        target_sets: 3,
+        name: 'Abductor (Outer Thigh)',
+        target_sets: 2,
+        target_reps: '12-15',
+        cue: 'Open knees wide against resistance, pause at peak expansion.',
+      },
+      {
+        name: 'Rückentrainer (Back Extension)',
+        target_sets: 2,
         target_reps: '10-12',
-        cue: 'Slight forward lean, slight elbow bend. Raise to shoulder height only — no higher. Slow 3s return.',
-      },
-      {
-        name: 'Tricep Dips (Assisted or Bodyweight)',
-        target_sets: 3,
-        target_reps: '8-10',
-        cue: 'Log the machine/band assistance used, in kg, in the Assist field — 0 once fully unassisted. Less assist is the improvement, same as any other lift getting easier.',
-        track_assist: 1,
-      },
-      {
-        name: 'Cardio',
-        target_sets: 1,
-        target_reps: '15 min',
+        cue: 'Controlled extension until torso aligns with hips, no hyperextension.',
       },
     ],
   },
   {
-    weekday: 'Tuesday',
-    title: 'PULL A',
-    focus: 'Back · Lats · Rear Delts · Biceps',
-    equipment: 'Free Weights',
-    style: 'Heavy',
+    weekday: 'full-body-b',
+    title: 'Full Body B',
+    focus: 'Lats · Shoulders · Hamstrings · Quads · Rotator Cuff · Abs',
+    equipment: 'EGYM / Machines',
+    style: 'Circuit · 2 rounds · ~35-40 min',
     exercises: [
       {
-        name: 'Barbell Bent-Over Row',
-        target_sets: 4,
-        target_reps: '6-8',
-        cue: 'Overhand grip, hinge at hips to ~45°, bar pulled to lower chest. Keep back flat — no rounding. Squeeze shoulder blades at top.',
-      },
-      {
-        name: 'Weighted Pull-Ups',
-        target_sets: 3,
-        target_reps: '6',
-        cue: 'If using machine/band assist, log it in kg in the Assist field — 0 once fully unassisted. Once unassisted, switch to the Weight field to log added weight (e.g. a dip belt).',
-        track_assist: 1,
-      },
-      { name: 'Lat Pulldown', target_sets: 3, target_reps: '6-8' },
-      { name: 'Dumbbell Single-Arm Row', target_sets: 3, target_reps: '6-8' },
-      {
-        name: 'Dumbbell Bicep Curl',
-        target_sets: 3,
+        name: 'Beinbeuger (Leg Curl)',
+        target_sets: 2,
         target_reps: '10-12',
-        cue: 'Neutral or supinated grip, elbows pinned to your sides. Full range — squeeze at top, controlled 3s negative, no swinging.',
+        cue: 'Pull heels toward glutes, 2-second controlled return, protects knee balance.',
       },
-      { name: 'Dumbbell Rear Delt Fly', target_sets: 3, target_reps: '10-12' },
-      { name: 'Cardio', target_sets: 1, target_reps: '15 min' },
-    ],
-  },
-  {
-    weekday: 'Wednesday',
-    title: 'LEGS A',
-    focus: 'Hamstrings · Glutes · Quads (limited)',
-    equipment: 'EGYM',
-    style: 'Volume',
-    exercises: [
-      { name: 'Leg Curl', target_sets: 4, target_reps: '10-12' },
-      { name: 'Leg Extension', target_sets: 4, target_reps: '10-12' },
-      { name: 'Adductor', target_sets: 3, target_reps: '12-15' },
-      { name: 'Abductor', target_sets: 3, target_reps: '12-15' },
-      { name: 'Hip Extension (Glute Kickback)', target_sets: 3, target_reps: '12-15' },
-      { name: 'Wall Sit', target_sets: 3, target_reps: '45 sec' },
-    ],
-  },
-  {
-    weekday: 'Thursday',
-    title: 'PUSH B',
-    focus: 'Chest · Shoulders · Triceps',
-    equipment: 'EGYM',
-    style: 'Volume',
-    exercises: [
-      { name: 'EGYM Chest Press', target_sets: 3, target_reps: '10-12' },
-      { name: 'EGYM Shoulder Press', target_sets: 3, target_reps: '10-12' },
-      { name: 'EGYM Butterfly (Pec Deck)', target_sets: 3, target_reps: '10-12' },
-      { name: 'EGYM Lateral Raise Machine', target_sets: 3, target_reps: '10-12' },
       {
-        name: 'Tricep Extension (Cable Rope Pushdown)',
-        target_sets: 3,
+        name: 'Latzug (Lat Pulldown)',
+        target_sets: 2,
         target_reps: '10-12',
-        cue: 'No EGYM equivalent — substitute: cable rope pushdown, or dumbbell overhead tricep extension if no cable station is free.',
+        cue: 'Pull bar down to upper chest, drive elbows into back pockets.',
       },
-      { name: 'Cardio', target_sets: 1, target_reps: '15 min' },
+      {
+        name: 'Schulterpresse (Shoulder Press)',
+        target_sets: 2,
+        target_reps: '10-12',
+        cue: 'Use neutral handles if available to keep wrists aligned and shoulders safe.',
+      },
+      {
+        name: 'Beinpresse (Leg Press)',
+        target_sets: 2,
+        target_reps: '15-20',
+        cue: 'Meniscus-safe: strictly limit depth to ~90°, never let knees crunch to chest. Light-to-moderate weight, higher reps.',
+      },
+      {
+        name: 'Rotator (Rotator Cuff)',
+        target_sets: 2,
+        target_reps: '12-15',
+        cue: 'Light load, slow rotation — keeps the shoulder joint centered and bulletproof.',
+      },
+      {
+        name: 'Bauchtrainer (Ab Crunch)',
+        target_sets: 2,
+        target_reps: '12-15',
+        cue: 'Curl ribcage down toward pelvis, focus on abdominal contraction rather than hip pulling.',
+      },
     ],
   },
   {
-    weekday: 'Friday',
-    title: 'PULL B',
-    focus: 'Back · Lats · Rear Delts · Biceps',
-    equipment: 'EGYM',
-    style: 'Volume',
+    weekday: 'full-body-c',
+    title: 'Full Body C',
+    focus: 'Chest · Rear Delts · Inner Thighs · Hamstrings/Glutes · Quads · Spinal Stability',
+    equipment: 'EGYM / Machines',
+    style: 'Circuit · 2 rounds · ~35-40 min',
     exercises: [
-      { name: 'EGYM Lat Pulldown', target_sets: 3, target_reps: '10-12' },
-      { name: 'EGYM Seated Row', target_sets: 3, target_reps: '10-12' },
-      { name: 'EGYM Reverse Flys', target_sets: 3, target_reps: '10-12' },
-      { name: 'Bicep Curl', target_sets: 3, target_reps: '10-12' },
-      { name: 'EGYM Back Extension', target_sets: 3, target_reps: '10-12' },
-      { name: 'Cardio', target_sets: 1, target_reps: '15 min' },
+      {
+        name: 'Hip Thrust / Booty Builder',
+        target_sets: 2,
+        target_reps: '10-12',
+        cue: 'Full hip extension at top, pause 1 second.',
+      },
+      {
+        name: 'Butterfly (Pec Fly)',
+        target_sets: 2,
+        target_reps: '12-15',
+        cue: 'Slight bend in elbows, bring pads together, control the chest stretch.',
+      },
+      {
+        name: 'Butterfly Reverse (Reverse Fly)',
+        target_sets: 2,
+        target_reps: '12-15',
+        cue: 'Chest glued to pad, sweep arms back with rear delts, neutral wrist hold.',
+      },
+      {
+        name: 'Adductor (Inner Thigh)',
+        target_sets: 2,
+        target_reps: '12-15',
+        cue: 'Squeeze knees inward, pause 1 second, control the outward stretch.',
+      },
+      {
+        name: 'Beinstrecker (Leg Extension)',
+        target_sets: 2,
+        target_reps: '12-15',
+        cue: 'Direct terminal extension to reinforce quad strength around the knee joint.',
+      },
+      {
+        name: 'Rückentrainer (Back Extension)',
+        target_sets: 2,
+        target_reps: '10-12',
+        cue: 'Smooth tempo, solid bracing through the torso.',
+      },
     ],
-  },
-  {
-    weekday: 'Saturday',
-    title: 'LEGS B + CORE',
-    focus: 'Glutes · Hamstrings · Core',
-    equipment: 'Free Weights',
-    style: 'Meniscus-safe',
-    exercises: [
-      { name: 'Romanian Deadlift (Dumbbell or Barbell)', target_sets: 4, target_reps: '8-10' },
-      { name: 'Dumbbell Hip Thrust (on bench)', target_sets: 4, target_reps: '10-12' },
-      { name: 'Cable Pull-Through or Dumbbell Kickback', target_sets: 3, target_reps: '12-15' },
-      { name: 'Plank', target_sets: 3, target_reps: '60 sec' },
-      { name: 'Cable Crunch or Ab Machine', target_sets: 3, target_reps: '12-15' },
-      { name: 'Cardio', target_sets: 1, target_reps: null },
-    ],
-  },
-  {
-    weekday: 'Sunday',
-    title: 'FULL REST',
-    focus: 'Recovery · Sleep · No Training',
-    equipment: null,
-    style: null,
-    is_rest: 1,
-    exercises: [],
   },
 ];
 
 const insertDay = db.prepare(`
-  INSERT INTO days (weekday, title, focus, equipment, style, is_rest, order_index)
-  VALUES (@weekday, @title, @focus, @equipment, @style, @is_rest, @order_index)
+  INSERT INTO days (weekday, title, focus, equipment, style, is_rest, active, order_index)
+  VALUES (@weekday, @title, @focus, @equipment, @style, @is_rest, @active, @order_index)
 `);
 
 const insertExercise = db.prepare(`
@@ -180,6 +162,7 @@ const seed = db.transaction(() => {
       equipment: day.equipment || null,
       style: day.style || null,
       is_rest: day.is_rest ? 1 : 0,
+      active: 1,
       order_index: dayIndex,
     });
     day.exercises.forEach((ex, exIndex) => {
@@ -211,6 +194,51 @@ const updateExercise = db.prepare(`
     cue = @cue, track_assist = @track_assist, order_index = @order_index
   WHERE id = @id
 `);
+const updateDay = db.prepare(`
+  UPDATE days SET title = @title, focus = @focus, equipment = @equipment, style = @style,
+    is_rest = @is_rest, active = @active, order_index = @order_index
+  WHERE id = @id
+`);
+
+// Upserts the routine (day) rows themselves — never deletes, so it's safe to
+// run against a database that already has other, older routines in it. New
+// routines in the `days` list get inserted active; routines already present
+// get refreshed (and reactivated, in case they were previously archived).
+function syncDays() {
+  const run = db.transaction(() => {
+    days.forEach((day, index) => {
+      const params = {
+        weekday: day.weekday,
+        title: day.title,
+        focus: day.focus || null,
+        equipment: day.equipment || null,
+        style: day.style || null,
+        is_rest: day.is_rest ? 1 : 0,
+        active: 1,
+        order_index: index,
+      };
+      const existing = findDay.get(day.weekday);
+      if (existing) {
+        updateDay.run({ ...params, id: existing.id });
+      } else {
+        insertDay.run(params);
+      }
+    });
+  });
+  run();
+}
+
+// Archives (deactivates) any routine that is no longer in the `days` list
+// above — e.g. after switching to a new weekly plan. Never deletes: the
+// routine's exercises and every logged set against them stay intact and
+// still show up in Progress, just hidden from the active workout picker.
+function archiveStaleRoutines() {
+  const currentSlugs = days.map((d) => d.weekday);
+  const placeholders = currentSlugs.map(() => '?').join(', ');
+  db.prepare(`UPDATE days SET active = 0 WHERE active = 1 AND weekday NOT IN (${placeholders})`).run(
+    ...currentSlugs
+  );
+}
 
 // Reconciles exercise definitions (name, target sets/reps, cue, order) against
 // the routine above without ever deleting a row — safe to run on every boot,
@@ -276,4 +304,12 @@ if (require.main === module) {
   console.log('Seeded database with weekly routine (existing logs cleared).');
 }
 
-module.exports = { seed, seedIfEmpty, syncExercises, migrateWeightToAssist, normalizeAssistSign };
+module.exports = {
+  seed,
+  seedIfEmpty,
+  syncDays,
+  syncExercises,
+  archiveStaleRoutines,
+  migrateWeightToAssist,
+  normalizeAssistSign,
+};

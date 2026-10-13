@@ -2,13 +2,22 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
-const { seedIfEmpty, syncExercises, migrateWeightToAssist, normalizeAssistSign } = require('./seed');
+const {
+  seedIfEmpty,
+  syncDays,
+  syncExercises,
+  archiveStaleRoutines,
+  migrateWeightToAssist,
+  normalizeAssistSign,
+} = require('./seed');
 const { MEASUREMENT_FIELDS } = require('./measurementFields');
 const { seedRecipeIfMissing } = require('./recipeSeed');
 const { INITIAL_RECIPES } = require('./initialRecipes');
 
 seedIfEmpty();
+syncDays();
 syncExercises();
+archiveStaleRoutines();
 migrateWeightToAssist('Tricep Dips (Assisted or Bodyweight)');
 normalizeAssistSign('Tricep Dips (Assisted or Bodyweight)');
 normalizeAssistSign('Weighted Pull-Ups');

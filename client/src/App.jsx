@@ -1,17 +1,10 @@
-import { NavLink, Route, Routes, Navigate } from 'react-router-dom';
+import { NavLink, Route, Routes } from 'react-router-dom';
 import WorkoutPage from './pages/WorkoutPage.jsx';
 import ProgressPage from './pages/ProgressPage.jsx';
 import BodyWeightPage from './pages/BodyWeightPage.jsx';
 import MeasurementsPage from './pages/MeasurementsPage.jsx';
 import OtherPage from './pages/OtherPage.jsx';
 import RecipesPage from './pages/RecipesPage.jsx';
-
-const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-function todayWeekday() {
-  const idx = new Date().getDay(); // 0 = Sunday
-  return WEEKDAYS[(idx + 6) % 7];
-}
 
 export default function App() {
   return (
@@ -42,7 +35,7 @@ export default function App() {
       </nav>
 
       <Routes>
-        <Route path="/" element={<Navigate to={`/day/${todayWeekday()}`} replace />} />
+        <Route path="/" element={<WorkoutPage />} />
         <Route path="/day/:weekday" element={<WorkoutPage />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/bodyweight" element={<BodyWeightPage />} />
@@ -53,5 +46,3 @@ export default function App() {
     </div>
   );
 }
-
-export { WEEKDAYS, todayWeekday };

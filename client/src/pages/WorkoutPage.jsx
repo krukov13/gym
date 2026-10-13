@@ -1,7 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { WEEKDAYS } from '../App.jsx';
 import ExerciseCard from '../components/ExerciseCard.jsx';
 import SessionStats from '../components/SessionStats.jsx';
 
@@ -13,12 +12,32 @@ function todayISO() {
 export default function WorkoutPage() {
   const { weekday } = useParams();
   const navigate = useNavigate();
+  const [allDays, setAllDays] = useState(null);
   const [day, setDay] = useState(null);
   const [date, setDate] = useState(todayISO());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // The list of routines you can currently pick between — not calendar days,
+  // just whichever routines are active, in the order they're defined.
+  const activeDays = useMemo(
+    () => (allDays ?? []).filter((d) => d.active).sort((a, b) => a.order_index - b.order_index),
+    [allDays]
+  );
+
+  useEffect(() => {
+    api.getDays().then(setAllDays);
+  }, []);
+
+  // No routine picked yet (e.g. landing on "/") — default to the first active one.
+  useEffect(() => {
+    if (!weekday && activeDays.length > 0) {
+      navigate(`/day/${activeDays[0].weekday}`, { replace: true });
+    }
+  }, [weekday, activeDays, navigate]);
+
   const load = useCallback(() => {
+    if (!weekday) return;
     setLoading(true);
     setError(null);
     api
@@ -34,17 +53,17 @@ export default function WorkoutPage() {
     <div>
       <SessionStats />
       <div className="day-picker">
-        {WEEKDAYS.map((wd) => (
+        {activeDays.map((d) => (
           <a
-            key={wd}
-            href={`/day/${wd}`}
+            key={d.weekday}
+            href={`/day/${d.weekday}`}
             onClick={(e) => {
               e.preventDefault();
-              navigate(`/day/${wd}`);
+              navigate(`/day/${d.weekday}`);
             }}
-            className={`day-pill${wd === weekday ? ' active' : ''}`}
+            className={`day-pill${d.weekday === weekday ? ' active' : ''}`}
           >
-            {wd.slice(0, 3)}
+            {d.title}
           </a>
         ))}
       </div>
@@ -55,9 +74,7 @@ export default function WorkoutPage() {
       {day && (
         <>
           <div className="day-header">
-            <p className="title">
-              {day.title} {day.is_rest ? '' : `· ${weekday}`}
-            </p>
+            <p className="title">{day.title}</p>
             <p className="meta">
               {day.focus}
               {day.equipment ? ` — ${day.equipment}${day.style ? ` · ${day.style}` : ''}` : ''}

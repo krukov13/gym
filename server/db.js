@@ -9,12 +9,13 @@ db.pragma('foreign_keys = ON');
 db.exec(`
 CREATE TABLE IF NOT EXISTS days (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  weekday TEXT NOT NULL UNIQUE,       -- Monday..Sunday
+  weekday TEXT NOT NULL UNIQUE,       -- a stable slug identifying the routine (not necessarily a calendar weekday)
   title TEXT NOT NULL,                -- e.g. "PUSH A"
   focus TEXT,                         -- e.g. "Chest · Shoulders · Triceps"
   equipment TEXT,                     -- e.g. "Free Weights"
   style TEXT,                         -- e.g. "Heavy" / "Volume"
   is_rest INTEGER NOT NULL DEFAULT 0,
+  active INTEGER NOT NULL DEFAULT 1,  -- inactive = archived routine, kept only so old exercises/logs stay intact
   order_index INTEGER NOT NULL
 );
 
@@ -93,5 +94,13 @@ CREATE INDEX IF NOT EXISTS idx_body_weight_date ON body_weight_logs(date);
 CREATE INDEX IF NOT EXISTS idx_measurement_logs_date ON measurement_logs(date);
 CREATE INDEX IF NOT EXISTS idx_custom_logs_name_date ON custom_logs(name, date);
 `);
+
+// CREATE TABLE IF NOT EXISTS above only applies to brand-new databases —
+// an already-existing `days` table (the live app) needs the new column
+// added explicitly. Idempotent: only runs if the column is actually missing.
+const daysColumns = db.prepare('PRAGMA table_info(days)').all();
+if (!daysColumns.some((c) => c.name === 'active')) {
+  db.exec('ALTER TABLE days ADD COLUMN active INTEGER NOT NULL DEFAULT 1');
+}
 
 module.exports = db;
