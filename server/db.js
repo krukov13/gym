@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS set_logs (
   reps REAL,
   assist REAL,                        -- assist weight/band, if applicable
   notes TEXT,
+  context_day_id INTEGER,             -- the routine this set was logged from (differs from the exercise's own routine for "extra" sets)
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -101,6 +102,17 @@ CREATE INDEX IF NOT EXISTS idx_custom_logs_name_date ON custom_logs(name, date);
 const daysColumns = db.prepare('PRAGMA table_info(days)').all();
 if (!daysColumns.some((c) => c.name === 'active')) {
   db.exec('ALTER TABLE days ADD COLUMN active INTEGER NOT NULL DEFAULT 1');
+}
+
+// Same for set_logs.context_day_id. Existing sets were all logged from their
+// exercise's own routine, so backfill them to that — which keeps them from
+// ever being mistaken for "extra" sets on some other routine's page.
+const setLogColumns = db.prepare('PRAGMA table_info(set_logs)').all();
+if (!setLogColumns.some((c) => c.name === 'context_day_id')) {
+  db.exec('ALTER TABLE set_logs ADD COLUMN context_day_id INTEGER');
+  db.exec(
+    'UPDATE set_logs SET context_day_id = (SELECT day_id FROM exercises WHERE exercises.id = set_logs.exercise_id)'
+  );
 }
 
 module.exports = db;

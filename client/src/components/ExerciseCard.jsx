@@ -11,7 +11,7 @@ function emptyRows(count) {
   }));
 }
 
-export default function ExerciseCard({ exercise, date, badge, onRemove }) {
+export default function ExerciseCard({ exercise, date, contextDayId, badge, onRemove }) {
   const [rows, setRows] = useState(() => emptyRows(exercise.target_sets));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -73,6 +73,7 @@ export default function ExerciseCard({ exercise, date, badge, onRemove }) {
           weight: row.weight === '' ? null : Number(row.weight),
           reps: row.reps === '' ? null : Number(row.reps),
           assist: row.assist === '' ? null : Number(row.assist),
+          context_day_id: contextDayId,
         };
         if (row.id) {
           await api.updateLog(row.id, payload);

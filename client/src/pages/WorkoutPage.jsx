@@ -33,11 +33,18 @@ export default function WorkoutPage() {
     api.getExercises().then(setAllExercises);
   }, []);
 
-  // No routine picked yet (e.g. landing on "/") — default to the first active one.
+  // No routine picked yet (e.g. landing on "/") — open the routine you most
+  // recently logged from today, so coming back mid-workout doesn't drop you
+  // on a different routine. Nothing logged today → first active routine.
   useEffect(() => {
-    if (!weekday && activeDays.length > 0) {
-      navigate(`/day/${activeDays[0].weekday}`, { replace: true });
-    }
+    if (weekday || activeDays.length === 0) return;
+    api.getLogsForDate(todayISO()).then((logs) => {
+      const lastLogged = [...logs]
+        .reverse()
+        .map((l) => activeDays.find((d) => d.id === l.context_day_id))
+        .find(Boolean);
+      navigate(`/day/${(lastLogged ?? activeDays[0]).weekday}`, { replace: true });
+    });
   }, [weekday, activeDays, navigate]);
 
   const load = useCallback(() => {
@@ -62,17 +69,19 @@ export default function WorkoutPage() {
 
   const regularIds = useMemo(() => new Set((day?.exercises ?? []).map((e) => e.id)), [day]);
 
-  // Any exercise with a logged set on this date that ISN'T part of today's
-  // regular routine — these are "extra" exercises logged just for this one
-  // time, so they should keep showing up here (not just in Progress) if you
-  // reload or come back to this date later.
+  // Exercises logged on this date *from this routine* that aren't part of its
+  // regular list — i.e. extras added here via the picker. Sets logged from a
+  // different routine on the same date (say you did C, then opened A) belong
+  // to that routine and must not show up here.
   useEffect(() => {
     if (!day || day.is_rest) {
       setLoggedExtraIds([]);
       return;
     }
     api.getLogsForDate(date).then((logs) => {
-      const extra = [...new Set(logs.map((l) => l.exercise_id))].filter((id) => !regularIds.has(id));
+      const extra = [
+        ...new Set(logs.filter((l) => l.context_day_id === day.id).map((l) => l.exercise_id)),
+      ].filter((id) => !regularIds.has(id));
       setLoggedExtraIds(extra);
     });
   }, [date, day, regularIds]);
@@ -161,13 +170,14 @@ export default function WorkoutPage() {
           ) : (
             <>
               {day.exercises.map((ex) => (
-                <ExerciseCard key={ex.id} exercise={ex} date={date} />
+                <ExerciseCard key={ex.id} exercise={ex} date={date} contextDayId={day.id} />
               ))}
               {extraExercises.map((ex) => (
                 <ExerciseCard
                   key={`extra-${ex.id}`}
                   exercise={ex}
                   date={date}
+                  contextDayId={day.id}
                   badge="Extra"
                   onRemove={() => removeExtra(ex.id)}
                 />

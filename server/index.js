@@ -71,11 +71,11 @@ app.get('/api/exercises/:id/logs/:date', (req, res) => {
   res.json(logs);
 });
 
-// Every logged set on a given date, across all exercises — used to detect
-// "extra" exercises logged that day which aren't part of the day's regular
-// routine, so they still show up if you reload or revisit that date.
+// Every logged set on a given date, across all exercises, oldest first. The
+// Workout page uses each set's context_day_id to find "extra" exercises added
+// from that routine, and to open on whichever routine you logged most recently.
 app.get('/api/logs/date/:date', (req, res) => {
-  const logs = db.prepare('SELECT * FROM set_logs WHERE date = ?').all(req.params.date);
+  const logs = db.prepare('SELECT * FROM set_logs WHERE date = ? ORDER BY id').all(req.params.date);
   res.json(logs);
 });
 
@@ -90,16 +90,27 @@ function normalizeAssist(assist) {
 }
 
 app.post('/api/logs', (req, res) => {
-  const { exercise_id, date, set_number, weight, reps, assist, notes } = req.body;
+  const { exercise_id, date, set_number, weight, reps, assist, notes, context_day_id } = req.body;
   if (!exercise_id || !date || !set_number) {
     return res.status(400).json({ error: 'exercise_id, date and set_number are required' });
   }
+  const contextDayId =
+    context_day_id ?? db.prepare('SELECT day_id FROM exercises WHERE id = ?').get(exercise_id)?.day_id ?? null;
   const info = db
     .prepare(
-      `INSERT INTO set_logs (exercise_id, date, set_number, weight, reps, assist, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO set_logs (exercise_id, date, set_number, weight, reps, assist, notes, context_day_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     )
-    .run(exercise_id, date, set_number, weight ?? null, reps ?? null, normalizeAssist(assist), notes ?? null);
+    .run(
+      exercise_id,
+      date,
+      set_number,
+      weight ?? null,
+      reps ?? null,
+      normalizeAssist(assist),
+      notes ?? null,
+      contextDayId
+    );
   res.status(201).json(db.prepare('SELECT * FROM set_logs WHERE id = ?').get(info.lastInsertRowid));
 });
 
