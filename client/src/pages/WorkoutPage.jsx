@@ -13,10 +13,13 @@ export default function WorkoutPage() {
   const { weekday } = useParams();
   const navigate = useNavigate();
   const [allDays, setAllDays] = useState(null);
+  const [allExercises, setAllExercises] = useState([]);
   const [day, setDay] = useState(null);
   const [date, setDate] = useState(todayISO());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [manualExtraIds, setManualExtraIds] = useState([]);
+  const [loggedExtraIds, setLoggedExtraIds] = useState([]);
 
   // The list of routines you can currently pick between — not calendar days,
   // just whichever routines are active, in the order they're defined.
@@ -27,6 +30,7 @@ export default function WorkoutPage() {
 
   useEffect(() => {
     api.getDays().then(setAllDays);
+    api.getExercises().then(setAllExercises);
   }, []);
 
   // No routine picked yet (e.g. landing on "/") — default to the first active one.
@@ -48,6 +52,60 @@ export default function WorkoutPage() {
   }, [weekday]);
 
   useEffect(load, [load]);
+
+  // Picking a new day or date clears exercises picked via the "+" menu this
+  // session — anything already logged for that date reappears automatically
+  // via loggedExtraIds below, so nothing is actually lost.
+  useEffect(() => {
+    setManualExtraIds([]);
+  }, [weekday, date]);
+
+  const regularIds = useMemo(() => new Set((day?.exercises ?? []).map((e) => e.id)), [day]);
+
+  // Any exercise with a logged set on this date that ISN'T part of today's
+  // regular routine — these are "extra" exercises logged just for this one
+  // time, so they should keep showing up here (not just in Progress) if you
+  // reload or come back to this date later.
+  useEffect(() => {
+    if (!day || day.is_rest) {
+      setLoggedExtraIds([]);
+      return;
+    }
+    api.getLogsForDate(date).then((logs) => {
+      const extra = [...new Set(logs.map((l) => l.exercise_id))].filter((id) => !regularIds.has(id));
+      setLoggedExtraIds(extra);
+    });
+  }, [date, day, regularIds]);
+
+  const extraIds = useMemo(
+    () => [...new Set([...manualExtraIds, ...loggedExtraIds])],
+    [manualExtraIds, loggedExtraIds]
+  );
+  const extraExercises = useMemo(
+    () => extraIds.map((id) => allExercises.find((e) => e.id === id)).filter(Boolean),
+    [extraIds, allExercises]
+  );
+
+  const dayTitleById = useMemo(() => {
+    const map = {};
+    (allDays ?? []).forEach((d) => {
+      map[d.id] = d.title;
+    });
+    return map;
+  }, [allDays]);
+
+  const pickerOptions = useMemo(
+    () =>
+      allExercises
+        .filter((e) => e.name !== 'Cardio' && !regularIds.has(e.id) && !extraIds.includes(e.id))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [allExercises, regularIds, extraIds]
+  );
+
+  const removeExtra = (id) => {
+    setManualExtraIds((prev) => prev.filter((x) => x !== id));
+    setLoggedExtraIds((prev) => prev.filter((x) => x !== id));
+  };
 
   return (
     <div>
@@ -101,7 +159,48 @@ export default function WorkoutPage() {
               <p>Full rest day. Recovery, sleep, no training.</p>
             </div>
           ) : (
-            day.exercises.map((ex) => <ExerciseCard key={ex.id} exercise={ex} date={date} />)
+            <>
+              {day.exercises.map((ex) => (
+                <ExerciseCard key={ex.id} exercise={ex} date={date} />
+              ))}
+              {extraExercises.map((ex) => (
+                <ExerciseCard
+                  key={`extra-${ex.id}`}
+                  exercise={ex}
+                  date={date}
+                  badge="Extra"
+                  onRemove={() => removeExtra(ex.id)}
+                />
+              ))}
+
+              <div className="card">
+                <label
+                  htmlFor="extra-picker"
+                  style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: 8 }}
+                >
+                  Did something extra today, outside this routine?
+                </label>
+                <select
+                  id="extra-picker"
+                  className="add-set-btn"
+                  style={{ width: '100%' }}
+                  value=""
+                  onChange={(e) => {
+                    const id = Number(e.target.value);
+                    if (id) setManualExtraIds((prev) => [...prev, id]);
+                    e.target.value = '';
+                  }}
+                >
+                  <option value="">+ Pick an exercise to log just for today…</option>
+                  {pickerOptions.map((ex) => (
+                    <option key={ex.id} value={ex.id}>
+                      {ex.name}
+                      {dayTitleById[ex.day_id] ? ` (${dayTitleById[ex.day_id]})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
           )}
         </>
       )}

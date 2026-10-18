@@ -11,7 +11,7 @@ function emptyRows(count) {
   }));
 }
 
-export default function ExerciseCard({ exercise, date }) {
+export default function ExerciseCard({ exercise, date, badge, onRemove }) {
   const [rows, setRows] = useState(() => emptyRows(exercise.target_sets));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -91,7 +91,34 @@ export default function ExerciseCard({ exercise, date }) {
 
   return (
     <div className="card">
-      <div className="exercise-name">{exercise.name}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="exercise-name">{exercise.name}</div>
+        {badge && (
+          <span
+            style={{
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              color: 'var(--series-1)',
+              border: '1px solid var(--series-1)',
+              borderRadius: 999,
+              padding: '1px 8px',
+            }}
+          >
+            {badge}
+          </span>
+        )}
+        {onRemove && (
+          <button
+            className="icon-btn"
+            onClick={onRemove}
+            style={{ marginLeft: 'auto' }}
+            title="Remove from today's view"
+            aria-label="Remove from today's view"
+          >
+            ✕
+          </button>
+        )}
+      </div>
       <div className="exercise-target">
         Target: {exercise.target_sets ? `${exercise.target_sets} sets` : ''}
         {exercise.target_reps ? ` × ${exercise.target_reps}` : ''}

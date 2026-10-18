@@ -71,6 +71,14 @@ app.get('/api/exercises/:id/logs/:date', (req, res) => {
   res.json(logs);
 });
 
+// Every logged set on a given date, across all exercises — used to detect
+// "extra" exercises logged that day which aren't part of the day's regular
+// routine, so they still show up if you reload or revisit that date.
+app.get('/api/logs/date/:date', (req, res) => {
+  const logs = db.prepare('SELECT * FROM set_logs WHERE date = ?').all(req.params.date);
+  res.json(logs);
+});
+
 // Assist is always "how much help was used" — stored as <= 0 (0 = none, -12
 // = 12kg of help) so that higher is always the improvement, same as weight.
 // Normalizing here means the user can just type "12" out of habit and it's

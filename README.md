@@ -36,7 +36,11 @@ existing data.
 - **Workout** — pick which routine (Full Body A/B/C) you're doing today —
   not tied to the calendar, pick any of them on any day — and log weight/reps
   per set for each exercise (extra sets can be added), editing a past date
-  via the date picker.
+  via the date picker. A picker at the bottom lets you log any exercise from
+  anywhere in the app — not just today's routine — as a one-off "Extra" for
+  just that date, without permanently adding it to the routine; it still
+  shows up in Progress like any other logged set, and reappears here
+  automatically if you revisit that date.
   Assisted pull-ups and tricep dips have a dedicated "assist" field (kg of
   machine/band help used) — stored as <= 0 (0 = unassisted, -12 = 12kg of
   help) so higher is always the improvement, same as weight. Type a positive

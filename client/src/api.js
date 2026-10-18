@@ -19,6 +19,7 @@ export const api = {
   getExercises: () => request('/exercises'),
   getExerciseLogs: (id) => request(`/exercises/${id}/logs`),
   getExerciseLogsForDate: (id, date) => request(`/exercises/${id}/logs/${date}`),
+  getLogsForDate: (date) => request(`/logs/date/${date}`),
   createLog: (log) => request('/logs', { method: 'POST', body: JSON.stringify(log) }),
   updateLog: (id, log) => request(`/logs/${id}`, { method: 'PUT', body: JSON.stringify(log) }),
   deleteLog: (id) => request(`/logs/${id}`, { method: 'DELETE' }),
